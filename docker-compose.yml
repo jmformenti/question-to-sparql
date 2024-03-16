@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  question-to-sparql:
+    build:
+      context: app
+      dockerfile: ../Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_BASE=${OPENAI_API_BASE}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+    profiles:
+      - default
+
+  chat-ui:
+    image: blrchen/chatgpt-lite
+    ports:
+      - "3001:3000"
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_BASE_URL=http://question-to-sparql
+      - OPENAI_API_KEY=ignored
+    depends_on:
+      - question-to-sparql
+    profiles:
+      - default
+
+  chat-ui-devel:
+    image: blrchen/chatgpt-lite
+    ports:
+      - "3001:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_BASE_URL=http://host.docker.internal:9000
+      - OPENAI_API_KEY=ignored
+    profiles:
+      - devel
