@@ -1,11 +1,12 @@
 import os
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 
 class SparqlQueryGenerator():
   def __init__(self):
-    self.prompt = PromptTemplate.from_template("""
+    prompt = PromptTemplate.from_template("""
     Given the next question and the info between brackets, write the SPARQL query for a wikibase:
     {question}
     Return only the SPARQL query enclosed by ```ruby without any explanation.
@@ -15,9 +16,13 @@ class SparqlQueryGenerator():
       del os.environ['OPENAI_API_BASE']
 
     if 'LLM_MODEL' in os.environ:
-      self.llm = ChatOpenAI(model=os.environ['LLM_MODEL'], temperature=0.1)
+      llm = ChatOpenAI(model=os.environ['LLM_MODEL'], temperature=0.1)
     else:
-      self.llm = ChatOpenAI(temperature=0.1)
+      llm = ChatOpenAI(temperature=0.1)
+
+    output_parser = StrOutputParser()
+
+    self.chain = prompt | llm | output_parser
 
   def generate(self, text):
-    return self.llm.invoke(self.prompt.format(question=text))
+    return self.chain.invoke({"question": text})
