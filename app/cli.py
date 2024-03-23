@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 question_to_sparql = QuestionToSparql()
 request = ChatCompletionRequest(stream=True, model='ignored', messages=[ChatMessage(role='ignored', content=args.question)])
-for _ in question_to_sparql.generate_answer(request):
+for _ in question_to_sparql.generate_answer(request, args.debug):
   pass
 
 logger.info('\ndone.\n')
